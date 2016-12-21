@@ -1,5 +1,5 @@
 ---
-id: "/master{instanceid}"
+id: /master{instanceid}
 cmd:
 cpus: 5
 mem: 8024
@@ -9,7 +9,7 @@ container:
   type: DOCKER
   volumes: []
   docker:
-    image: buildbot/buildbot-master-pypy
+    image: buildbot/buildbot-master-pypy:0.8.14
     network: BRIDGE
     privileged: false
     parameters: []
@@ -29,3 +29,14 @@ env:
     # BUILDBOT_MQ_URL: {mqURL}
     # BUILDBOT_MQ_DEBUG: 'true'
     # BUILDBOT_MQ_REALM: realm1
+
+healthChecks:
+-
+  path: /,
+  protocol: HTTP,
+  portIndex: 1,
+  gracePeriodSeconds: 300,
+  intervalSeconds: 60,
+  timeoutSeconds: 20,
+  maxConsecutiveFailures: 3,
+  ignoreHttp1xx: false
