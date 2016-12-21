@@ -1,4 +1,5 @@
 import os
+import statistics
 import time
 
 import argh
@@ -35,19 +36,28 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
     os.system("python marathon.py worker {}".format(num_workers))
 
     finished = False
+    builds = []
+    latencies = []
     while not finished:
         t1 = time.time()
         r = requests.get(url + "api/v2/buildrequests?complete=0")
         r.raise_for_status()
         brs = r.json()['buildrequests']
         t2 = time.time()
-        print psutil.cpu_percent(), len(brs), t2 - t1
+        r = requests.get(url + "api/v2/builds?complete=0")
+        r.raise_for_status()
+        builds.append(len(r.json()['builds']))
+        latencies.append(t2 - t1)
+        print psutil.cpu_percent(), len(brs), t2 - t1, builds[-1]
         finished = not brs
         time.sleep(0.4)
     end = time.time()
     print "finished in ", end - start
     with open("marathonresults.csv", 'a') as f:
-        f.write("{};{};{};{};{};{}\n".format(
-            config_kind, num_builds, num_workers, numlines, sleep, end - start))
+        f.write(";".join(map(str, [
+            config_kind, num_builds, num_workers, numlines, sleep, end - start,
+            statistics.mean(builds), statistics.mean(latencies),
+            statistics.pstdev(builds), statistics.pstdev(latencies)]
+        )) + "\n")
 
 argh.dispatch_command(main)

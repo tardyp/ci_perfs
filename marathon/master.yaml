@@ -9,11 +9,13 @@ container:
   type: DOCKER
   volumes: []
   docker:
+    #image: buildbot/buildbot-master:master
     image: buildbot/buildbot-master-pypy
+    #image: buildbot/buildbot-master-pypy:hugelog
     network: BRIDGE
     privileged: false
     parameters: []
-    forcePullImage: false
+    forcePullImage: true
     portMappings:
     - containerPort: 9989
       protocol: tcp
