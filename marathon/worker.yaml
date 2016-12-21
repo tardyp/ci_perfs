@@ -9,7 +9,7 @@ container:
   type: DOCKER
   volumes: []
   docker:
-    image:  "buildbot/buildbot-worker:master"
+    image:  "buildbot/buildbot-master-pypy:worker-0.8.14"
     network: BRIDGE
     privileged: false
     parameters: []
