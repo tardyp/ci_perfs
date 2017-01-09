@@ -2,7 +2,7 @@
 id: /master{instanceid}
 cmd:
 cpus: 5
-mem: 10024
+mem: 15024
 disk: 0
 instances: 1
 container:
