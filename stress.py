@@ -2,6 +2,7 @@ import os
 import time
 
 import argh
+
 import psutil
 import requests
 
@@ -9,7 +10,7 @@ import requests
 @argh.arg('num_builds', type=int)
 @argh.arg('num_workers', type=int)
 @argh.arg('config_kind', type=str)
-def main(num_builds, num_workers, config_kind):
+def main(num_builds, num_workers, config_kind, numlines, sleep):
     for w in os.listdir(os.curdir):
         if w.startswith('worker'):
             print "cleanup", w
@@ -25,7 +26,9 @@ def main(num_builds, num_workers, config_kind):
             "http://localhost:8010/api/v2/forceschedulers/force",
             json={"id": 1, "jsonrpc": "2.0", "method": "force", "params": {
                 "builderid": "1", "username": "", "reason": "force build",
-                "project": "", "repository": "", "branch": "", "revision": ""}})
+                "project": "", "repository": "", "branch": "", "revision": "",
+                "NUMLINES": str(numlines),
+                "SLEEP": str(sleep)}})
         r.raise_for_status()
 
     print "starting workers"

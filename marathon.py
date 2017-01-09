@@ -4,8 +4,9 @@ import random
 import time
 
 import argh
-import requests
 import yaml
+
+import requests
 
 MARATHON_URL = os.environ["MARATHON_URL"]
 
@@ -44,15 +45,16 @@ def waitQuiet():
         time.sleep(1)
 
 def getMasterPorts():
-    r = requests.get(MARATHON_URL + "/v2/apps//master0")
+    r = requests.get(MARATHON_URL + "/v2/apps?id=master&embed=apps.tasks")
     try:
         r.raise_for_status()
     except:
         return[(1, 2)]
     data = r.json()
     ports = []
-    for task in data['app']['tasks']:
-        ports.append((task['host'], task['ports'][0]))
+    for app in data['apps']:
+        for task in app['tasks']:
+            ports.append((task['host'], task['ports'][0], task['ports'][1]))
     if not ports:
         return[('s1', '2')]
     return ports
@@ -68,11 +70,11 @@ def main(config, instances):
     r = requests.get(MARATHON_URL + "/v2/apps?id={config}".format(config=config))
     for app in r.json()['apps']:
         requests.delete(MARATHON_URL + "/v2/apps/{id}?force=true".format(
-           **app 
+           **app
         ))
     waitQuiet()
     for i in xrange(int(instances)):
-        master, masterport = random.choice(masterports)
+        master, masterport, _ = random.choice(masterports)
         config_data = yaml.load(y.format(instanceid=i, dbURL=dbURL, mqURL=mqURL,
                                          master=master, masterport=masterport))
         for env in 'http_proxy', 'https_proxy', 'no_proxy':
@@ -85,4 +87,5 @@ def main(config, instances):
         r.raise_for_status()
     waitQuiet()
 
-argh.dispatch_command(main)
+if __name__ == "__main__":
+    argh.dispatch_command(main)
