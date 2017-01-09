@@ -1,15 +1,16 @@
 ---
 id: "/worker{instanceid}"
 cmd:
-cpus: 0.1
-mem: 128
+cpus: 0.4
+mem: 256
 disk: 0
 instances: 1
 container:
   type: DOCKER
   volumes: []
   docker:
-    image:  "buildbot/buildbot-master-pypy:worker-0.8.14"
+    #image:  "buildbot/buildbot-master-pypy:worker-0.8.14"
+    image:  "buildbot/buildbot-worker:master"
     network: BRIDGE
     privileged: false
     parameters: []

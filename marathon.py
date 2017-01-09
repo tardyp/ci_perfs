@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import random
+import time
 
 import argh
 import requests
@@ -30,6 +31,17 @@ def getMqURL():
         hostname=hostname, port=port
     )
 
+def waitQuiet():
+    while True:
+        r = requests.get(MARATHON_URL + "/v2/deployments")
+        j = r.json()
+        if len(j) == 0:
+            break
+        affectedApps = set()
+        for app in j:
+             affectedApps.update(set(app['affectedApps']))
+        print affectedApps
+        time.sleep(1)
 
 def getMasterPorts():
     r = requests.get(MARATHON_URL + "/v2/apps//master0")
@@ -53,6 +65,12 @@ def main(config, instances):
     with open("marathon/{}.yaml".format(config)) as f:
         y = f.read()
 
+    r = requests.get(MARATHON_URL + "/v2/apps?id={config}".format(config=config))
+    for app in r.json()['apps']:
+        requests.delete(MARATHON_URL + "/v2/apps/{id}?force=true".format(
+           **app 
+        ))
+    waitQuiet()
     for i in xrange(int(instances)):
         master, masterport = random.choice(masterports)
         config_data = yaml.load(y.format(instanceid=i, dbURL=dbURL, mqURL=mqURL,
@@ -60,14 +78,11 @@ def main(config, instances):
         for env in 'http_proxy', 'https_proxy', 'no_proxy':
             if env in os.environ:
                 config_data['env'][env] = os.environ[env]
-        r = requests.put(MARATHON_URL + "/v2/apps/{config}{instanceid}".format(
+        r = requests.put(MARATHON_URL + "/v2/apps/{config}{instanceid}?force=true".format(
             config=config, instanceid=i
         ), json=config_data)
         print r.content
         r.raise_for_status()
+    waitQuiet()
 
-    for i in xrange(int(instances), 300):
-        requests.delete(MARATHON_URL + "/v2/apps/{config}{instanceid}".format(
-            config=config, instanceid=i
-        ))
 argh.dispatch_command(main)

@@ -20,9 +20,9 @@ def getMasterURL():
 @argh.arg('num_builds', type=int)
 @argh.arg('num_workers', type=int)
 def main(num_builds, num_workers, config_kind, numlines, sleep):
-    os.system("python marathon.py worker {}".format(0))
     url = getMasterURL()
     print "create builds", num_builds
+    os.system("python marathon.py worker 0")
     start = time.time()
     for i in xrange(num_builds):
         r = requests.post(
@@ -41,7 +41,12 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
     while not finished:
         t1 = time.time()
         r = requests.get(url + "api/v2/buildrequests?complete=0")
-        r.raise_for_status()
+        try:
+           r.raise_for_status()
+        except Exception as e:
+           time.sleep(1)
+           print e
+           continue
         brs = r.json()['buildrequests']
         t2 = time.time()
         r = requests.get(url + "api/v2/builds?complete=0")
@@ -59,5 +64,5 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
             statistics.mean(builds), statistics.mean(latencies),
             statistics.pstdev(builds), statistics.pstdev(latencies)]
         )) + "\n")
-
+    return 0
 argh.dispatch_command(main)
