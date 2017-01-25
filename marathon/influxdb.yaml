@@ -1,0 +1,25 @@
+---
+id: "/influxdb"
+cmd:
+cpus: 0.1
+mem: 256
+disk: 0
+instances: 1
+container:
+  type: DOCKER
+  volumes: []
+  docker:
+    image:  "influxdb:alpine"
+    network: BRIDGE
+    privileged: false
+    parameters: []
+    forcePullImage: false
+    portMappings:
+    - containerPort: 8086
+      protocol: tcp
+    - containerPort: 2003
+      protocol: tcp
+    - containerPort: 8083
+      protocol: tcp
+env:
+    INFLUXDB_GRAPHITE_ENABLED: "true"

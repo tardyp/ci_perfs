@@ -1,0 +1,42 @@
+---
+id: /master{instanceid}
+cmd:
+cpus: 5
+mem: 8024
+disk: 0
+instances: 1
+container:
+  type: DOCKER
+  volumes: []
+  docker:
+    image: buildbot/buildbot-master-pypy
+    network: BRIDGE
+    privileged: false
+    parameters: []
+    forcePullImage: false
+    portMappings:
+    - containerPort: 9989
+      protocol: tcp
+    - containerPort: 8080
+      protocol: tcp
+env:
+    BUILDBOT_CONFIG_DIR: config
+    BUILDBOT_CONFIG_URL: https://github.com/tardyp/ci_perfs/archive/master.tar.gz
+    BUILDBOT_WORKER_PORT: '9989'
+    BUILDBOT_WEB_URL: http://{{HOST}}:{{PORT1}}/
+    BUILDBOT_WEB_PORT: '8080'
+    BUILDBOT_DB_URL: {dbURL}
+    # BUILDBOT_MQ_URL: {mqURL}
+    # BUILDBOT_MQ_DEBUG: 'true'
+    # BUILDBOT_MQ_REALM: realm1
+
+healthChecks:
+-
+  path: /,
+  protocol: HTTP,
+  portIndex: 1,
+  gracePeriodSeconds: 300,
+  intervalSeconds: 60,
+  timeoutSeconds: 20,
+  maxConsecutiveFailures: 3,
+  ignoreHttp1xx: false
