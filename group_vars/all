@@ -1,0 +1,37 @@
+# This file defines all kind of global parameters and defaults
+---
+
+# service ports are defined globally, and used for service discovery
+# marathon_lb is installed on all workers
+servicePorts:
+
+    nginx_http:       80
+    nginx_ssl:        443
+
+    # collectd and marathon_lb does not actually use service port,
+    # but use host_port to be able to spread over all the mesos agents
+    collectd:         10000
+    marathon_lb:      10001
+
+    influxdb:         10010
+    graphite:         10011
+    influxdb_admin:   10012
+
+    grafana:          10020
+
+    buildbot_www:     10030
+    buildbot_worker:  10031
+
+    postgres:         10040
+
+    crossbar:         10050
+
+docker_ip: 172.17.0.1
+
+marathon_uri: "{{ ansible_env.MARATHON_URI }}"
+influxdb_conf_url: "{{ ansible_env.INFLUXDB_CONF_URL | default('https://raw.githubusercontent.com/tardyp/ci_perfs/master/marathon/influxdb/influxdb.conf') }}"
+
+# PG config for buildbot
+POSTGRES_USER: buildbot
+POSTGRES_PASSWORD: change_me
+POSTGRES_DB: buildbot

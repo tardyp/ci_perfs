@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+    # order is important (until we implement marathon groups)
+    - include: "marathon/crossbar.yml"
+    - include: "marathon/pg.yml"
+    - include: "marathon/influxdb.yml"
+    - include: "marathon/grafana.yml"
+    - include: "marathon/collectd.yml"
+    - include: "marathon/buildbot.yml"
+    - include: "marathon/worker.yml"

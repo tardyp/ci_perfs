@@ -1,0 +1,32 @@
+---
+- name: Deploy collectd
+  marathon:
+    marathon_uri: "{{ marathon_uri }}"
+    app_id: collectd
+    app_json:
+        cmd:
+        cpus: 0.1
+        mem: 256
+        disk: 0
+        instances: 6
+        container:
+          type: DOCKER
+          volumes:
+          - containerPath: "/var/run/docker.sock"
+            hostPath: "/var/run/docker.sock"
+            mode: RW
+          docker:
+            image:  "bobrik/collectd-docker"
+            network: BRIDGE
+            privileged: false
+            parameters: []
+            forcePullImage: false
+            portMappings:
+            - containerPort: 10666
+              hostPort: 31500
+        env:
+            GRAPHITE_HOST: "{{ docker_ip }}"
+            GRAPHITE_PORT: "{{ servicePorts['graphite'] }}"
+            APP_ENV_KEY: MARATHON_APP_ID
+            COLLECTD_DOCKER_TASK_ENV: MESOS_TASK_ID
+            COLLECTD_HOST: MESOS

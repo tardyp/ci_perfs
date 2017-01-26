@@ -1,0 +1,33 @@
+---
+- name: Deploy influxdb
+  marathon:
+    marathon_uri: "{{ marathon_uri }}"
+    app_id: influxdb
+    app_json:
+        id: "influxdb"
+        cmd: influxd -config /mnt/mesos/sandbox/influxdb.conf
+        cpus: 0.1
+        mem: 256
+        disk: 0
+        instances: 1
+        container:
+          type: DOCKER
+          volumes: []
+          docker:
+            image:  "influxdb:alpine"
+            network: BRIDGE
+            privileged: false
+            parameters: []
+            forcePullImage: false
+            portMappings:
+            - containerPort: 8086
+              protocol: tcp
+              servicePort: "{{ servicePorts['influxdb'] }}"
+            - containerPort: 2003
+              protocol: tcp
+              servicePort: "{{ servicePorts['graphite'] }}"
+            - containerPort: 8083
+              servicePort: "{{ servicePorts['influxdb_admin'] }}"
+              protocol: tcp
+        uris:
+            - {{ influxdb_conf_url }}
