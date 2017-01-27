@@ -81,10 +81,11 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
             finished = True  # timeout
             os.system("./restart.sh")
     print "finished in ", end - start
-    with open("marathonresults.csv", 'a') as f:
-        f.write(";".join(map(str, [
-            config_kind, num_builds, num_workers, numlines, sleep, end - start,
-            statistics.mean(builds), statistics.mean(latencies),
-            statistics.pstdev(builds), statistics.pstdev(latencies)]
-        )) + "\n")
+    requests.post("http://events.buildbot.net/events/ci_perfs", json=dict(
+        config_kind=config_kind, num_builds=num_builds, num_workers=num_workers,
+        numlines=numlines, sleep=sleep, time=end - start,
+        mean_builds=statistics.mean(builds), mean_latencies=statistics.mean(latencies),
+        pstdev_builds=statistics.pstdev(builds), pstdev_latencies=statistics.pstdev(latencies)))
+
+
 argh.dispatch_command(main)
