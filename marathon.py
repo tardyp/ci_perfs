@@ -4,9 +4,8 @@ import random
 import time
 
 import argh
-import yaml
-
 import requests
+import yaml
 
 MARATHON_URL = os.environ["MARATHON_URL"]
 
@@ -38,6 +37,19 @@ def getMqURL():
         hostname=hostname, port=port
     )
 
+
+def getInfluxdbPort():
+    r = requests.get(MARATHON_URL + "/v2/apps//influxdb0")
+    try:
+        r.raise_for_status()
+    except:
+        return ('none', 12)
+    data = r.json()
+    hostname = data['app']['tasks'][0]['host']
+    port = data['app']['tasks'][0]['ports'][1]
+    return (hostname, port)
+
+
 def waitQuiet():
     while True:
         r = requests.get(MARATHON_URL + "/v2/deployments")
@@ -46,9 +58,9 @@ def waitQuiet():
             break
         affectedApps = set()
         for app in j:
-             affectedApps.update(set(app['affectedApps']))
-        print affectedApps
+            affectedApps.update(set(app['affectedApps']))
         time.sleep(1)
+
 
 def getMasterPorts():
     r = requests.get(MARATHON_URL + "/v2/apps?id=master&embed=apps.tasks")
@@ -69,6 +81,7 @@ def getMasterPorts():
 def main(config, instances):
     dbURL = getPgURL()
     mqURL = getMqURL()
+    influxdb, graphiteport = getInfluxdbPort()
     masterports = getMasterPorts()
     with open("marathon/{}.yaml".format(config)) as f:
         y = f.read()
@@ -76,16 +89,19 @@ def main(config, instances):
     r = requests.get(MARATHON_URL + "/v2/apps?id={config}".format(config=config))
     for app in r.json()['apps']:
         requests.delete(MARATHON_URL + "/v2/apps/{id}?force=true".format(
-           **app
+            **app
         ))
     waitQuiet()
     for i in xrange(int(instances)):
         master, masterport, _ = random.choice(masterports)
         config_data = yaml.load(y.format(instanceid=i, dbURL=dbURL, mqURL=mqURL,
-                                         master=master, masterport=masterport))
+                                         master=master, masterport=masterport, influxdb=influxdb,
+                                         graphiteport=graphiteport))
         for env in 'http_proxy', 'https_proxy', 'no_proxy':
             if env in os.environ:
+                config_data.setdefault('env', {})
                 config_data['env'][env] = os.environ[env]
+        print config_data
         r = requests.put(MARATHON_URL + "/v2/apps/{config}{instanceid}?force=true".format(
             config=config, instanceid=i
         ), json=config_data)

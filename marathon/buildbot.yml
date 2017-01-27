@@ -1,0 +1,52 @@
+---
+- name: Deploy buildbot
+  marathon:
+    marathon_uri: "{{ marathon_uri }}"
+    app_id: buildbot
+    wait_quiet: 'true'
+    app_json:
+        id: buildbot
+        cpus: 5
+        mem: 14024
+        disk: 0
+        instances: 4
+        container:
+          type: DOCKER
+          volumes: []
+          docker:
+            image: buildbot/buildbot-master-pypy:0.9.3_485
+            network: BRIDGE
+            privileged: false
+            parameters: []
+            forcePullImage: true
+            portMappings:
+            - containerPort: 9989
+              protocol: tcp
+              servicePort: "{{ servicePorts['buildbot_worker'] }}"
+            - containerPort: 8080
+              protocol: tcp
+              servicePort: "{{ servicePorts['buildbot_www'] }}"
+        env:
+            BUILDBOT_CONFIG_DIR: config
+            BUILDBOT_CONFIG_URL: https://github.com/tardyp/ci_perfs/archive/master.tar.gz
+            BUILDBOT_WORKER_PORT: '9989'
+            BUILDBOT_WEB_URL: "http://{HOST}:{PORT1}/"  # HOST and PORT1 are from the environ (implemented in master.cfg)
+            BUILDBOT_WEB_PORT: '8080'
+            BUILDBOT_DB_URL: postgresql+psycopg2://{{POSTGRES_USER}}:{{POSTGRES_PASSWORD}}@{{docker_ip}}:{{servicePorts['postgres']}}/{{POSTGRES_DB}}
+            BUILDBOT_MQ_URL: ws://{{docker_ip}}:{{servicePorts['crossbar']}}
+            BUILDBOT_MQ_REALM: realm1
+            https_proxy: "{{proxy_env['https_proxy']}}"
+        labels:
+          HAPROXY_GROUP: external
+          HAPROXY_0_BIND_ADDR: 172.17.0.1
+
+        healthChecks:
+        -
+          path: /
+          protocol: HTTP
+          portIndex: 1
+          gracePeriodSeconds: 300
+          intervalSeconds: 60
+          timeoutSeconds: 20
+          maxConsecutiveFailures: 3
+          ignoreHttp1xx: false

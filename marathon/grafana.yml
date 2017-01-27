@@ -1,0 +1,28 @@
+---
+- name: Deploy grafana
+  marathon:
+    marathon_uri: "{{ marathon_uri }}"
+    app_id: grafana
+    app_json:
+        id: "grafana"
+        cmd:
+        cpus: 0.1
+        mem: 256
+        disk: 0
+        instances: 1
+        container:
+          type: DOCKER
+          volumes: []
+          docker:
+            image:  "grafana/grafana"
+            network: BRIDGE
+            privileged: false
+            parameters: []
+            forcePullImage: false
+            portMappings:
+            - containerPort: 3000
+              servicePort: "{{ servicePorts['grafana'] }}"
+              protocol: tcp
+        labels:
+          HAPROXY_GROUP: external
+          HAPROXY_BIND_ADDR: 172.17.0.1

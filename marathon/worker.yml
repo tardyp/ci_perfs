@@ -1,0 +1,29 @@
+---
+- name: Deploy buildbot workers
+  marathon:
+    marathon_uri: "{{ marathon_uri }}"
+    app_id: worker
+    app_json:
+        id: "worker"
+        cmd:
+        cpus: 0.4
+        mem: 256
+        disk: 0
+        instances: 1
+        container:
+          type: DOCKER
+          volumes: []
+          docker:
+            #image:  "buildbot/buildbot-master-pypy:worker-0.8.14"
+            #image:  "buildbot/buildbot-worker:master"
+            image: "tardyp/buildbot_zk_worker"
+            network: BRIDGE
+            privileged: false
+            parameters: []
+            forcePullImage: false
+        env:
+            BUILDMASTER: "{{ docker_ip }}"
+            BUILDMASTER_PORT: "{{ servicePorts['buildbot_worker'] }}"
+            WORKERNAME: "worker{{ '{' + zookeeper_worker_path + '}'}}"
+            WORKERPASS: pass
+            WORKER_ENVIRONMENT_BLACKLIST: DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1* WORKER_ENVIRONMENT_BLACKLIST
