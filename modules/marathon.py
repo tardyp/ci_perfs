@@ -106,9 +106,8 @@ def put(url, data):
 def enforceInts(d):
     if not isinstance(d, dict):
         return d
-    d['___keys'] = d.keys()
     for k, v in list(d.items()):
-        if k in ("servicePort", "instances", "port"):
+        if k in ("servicePort", "instances", "port") and isinstance(v, str):
             d[k] = int(v)
         if k.endswith("Port"):
             d[k] = int(v)
@@ -156,13 +155,10 @@ def main():
     marathon_uri = marathon_uri + 'v2/apps/' + app_id
     versions_before = get(marathon_uri + "/versions", accepted_responses=(200, 404))
     ret = put(marathon_uri + '?force=true', app_json)
-    if wait_quiet:
-        waitQuiet(marathon_uri)
     versions_after = get(marathon_uri + "/versions", accepted_responses=(200, 404))
     if versions_before != versions_after:
         module.exit_json(changed=True, meta=ret)
     else:
         module.exit_json(changed=False)
-
 
 main()

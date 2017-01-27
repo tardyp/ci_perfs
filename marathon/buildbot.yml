@@ -14,7 +14,7 @@
           type: DOCKER
           volumes: []
           docker:
-            image: buildbot/buildbot-master-pypy
+            image: buildbot/buildbot-master-pypy:hugelog
             network: BRIDGE
             privileged: false
             parameters: []
@@ -35,6 +35,10 @@
             BUILDBOT_DB_URL: postgresql+psycopg2://{{POSTGRES_USER}}:{{POSTGRES_PASSWORD}}@{{docker_ip}}:{{servicePorts['postgres']}}/{{POSTGRES_DB}}
             BUILDBOT_MQ_URL: ws://{{docker_ip}}:{{servicePorts['crossbar']}}
             BUILDBOT_MQ_REALM: realm1
+            https_proxy: "{{proxy_env['https_proxy']}}"
+        labels:
+          HAPROXY_GROUP: external
+          HAPROXY_0_BIND_ADDR: 172.17.0.1
 
         healthChecks:
         -

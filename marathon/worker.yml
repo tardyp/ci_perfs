@@ -15,7 +15,8 @@
           volumes: []
           docker:
             #image:  "buildbot/buildbot-master-pypy:worker-0.8.14"
-            image:  "buildbot/buildbot-worker:master"
+            #image:  "buildbot/buildbot-worker:master"
+            image: "tardyp/buildbot_zk_worker"
             network: BRIDGE
             privileged: false
             parameters: []

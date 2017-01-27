@@ -1,0 +1,24 @@
+---
+- name: Deploy marathon_lb
+  marathon:
+    marathon_uri: "{{ marathon_uri }}"
+    app_id: marathonlb
+    wait_quiet: true
+    app_json:
+        cmd:
+        args: [ sse, --marathon, "{{ marathon_uri }}", --group, external ]
+        cpus: 1
+        mem: 128
+        disk: 0
+        instances: "{{marathon_num_agents}}"
+        constraints:
+        - [ "hostname", "UNIQUE" ]
+        container:
+          type: DOCKER
+          volumes: []
+          docker:
+            image: mesosphere/marathon-lb
+            network: HOST
+            privileged: false
+            parameters: []
+            forcePullImage: false

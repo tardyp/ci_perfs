@@ -29,5 +29,8 @@
             - containerPort: 8083
               servicePort: "{{ servicePorts['influxdb_admin'] }}"
               protocol: tcp
+        labels:
+          HAPROXY_GROUP: external
+          HAPROXY_BIND_ADDR: 172.17.0.1
         uris:
-            - {{ influxdb_conf_url }}
+            - "{{ influxdb_conf_url }}"

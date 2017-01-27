@@ -53,7 +53,6 @@ def waitQuiet():
         affectedApps = set()
         for app in j:
             affectedApps.update(set(app['affectedApps']))
-        print affectedApps
         time.sleep(1)
 
 

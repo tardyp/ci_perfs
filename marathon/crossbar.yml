@@ -21,3 +21,6 @@
             - containerPort: 8080
               protocol: tcp
               servicePort: "{{ servicePorts['crossbar'] }}"
+        labels:
+          HAPROXY_GROUP: external
+          HAPROXY_BIND_ADDR: 172.17.0.1

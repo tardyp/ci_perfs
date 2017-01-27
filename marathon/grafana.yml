@@ -23,3 +23,6 @@
             - containerPort: 3000
               servicePort: "{{ servicePorts['grafana'] }}"
               protocol: tcp
+        labels:
+          HAPROXY_GROUP: external
+          HAPROXY_BIND_ADDR: 172.17.0.1

@@ -3,6 +3,7 @@
   connection: local
   tasks:
     # order is important (until we implement marathon groups)
+    - include: "marathon/marathonlb.yml"
     - include: "marathon/crossbar.yml"
     - include: "marathon/pg.yml"
     - include: "marathon/influxdb.yml"
