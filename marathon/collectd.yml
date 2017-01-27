@@ -27,5 +27,5 @@
             GRAPHITE_HOST: "{{ docker_ip }}"
             GRAPHITE_PORT: "{{ servicePorts['graphite'] }}"
             APP_ENV_KEY: MARATHON_APP_ID
-            COLLECTD_DOCKER_TASK_ENV: MESOS_TASK_ID
+            TASK_ENV_KEY: MESOS_TASK_ID
             COLLECTD_HOST: MESOS

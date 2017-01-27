@@ -10,19 +10,33 @@ MARATHON_URL = os.environ["MARATHON_URL"]
 
 
 def getMasterURL():
-    r = requests.get(MARATHON_URL + "/v2/apps//master0")
+    r = requests.get(MARATHON_URL + "/v2/apps/buildbot")
     r.raise_for_status()
     data = r.json()
     for task in data['app']['tasks']:
         return "http://{}:{}/".format(task['host'], task['ports'][1])
 
 
+def waitQuiet():
+    while True:
+        r = requests.get(MARATHON_URL + "/v2/deployments")
+        j = r.json()
+        if len(j) == 0:
+            break
+        affectedApps = set()
+        for app in j:
+            affectedApps.update(set(app['affectedApps']))
+        time.sleep(1)
+
+
 @argh.arg('num_builds', type=int)
 @argh.arg('num_workers', type=int)
 def main(num_builds, num_workers, config_kind, numlines, sleep):
     url = getMasterURL()
-    print "create builds", num_builds
-    os.system("python marathon.py worker 0")
+    print "stop workers"
+    requests.put(MARATHON_URL + "/v2/apps/worker?force=True", json={"instances": 0})
+    waitQuiet()
+    print "create {} build".format(num_builds)
     start = time.time()
     for i in xrange(num_builds):
         r = requests.post(
@@ -33,7 +47,8 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
                 "NUMLINES": str(numlines),
                 "SLEEP": str(sleep)}})
         r.raise_for_status()
-    os.system("python marathon.py worker {}".format(num_workers))
+    print "create {} workers".format(num_workers)
+    requests.put(MARATHON_URL + "/v2/apps/worker?force=True", json={"instances": num_workers})
 
     finished = False
     builds = []
