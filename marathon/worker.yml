@@ -23,6 +23,6 @@
         env:
             BUILDMASTER: "{{ docker_ip }}"
             BUILDMASTER_PORT: "{{ servicePorts['buildbot_worker'] }}"
-            WORKERNAME: worker{ZK_ID}
+            WORKERNAME: "worker{{ '{' + zookeeper_worker_path + '}'}}"
             WORKERPASS: pass
             WORKER_ENVIRONMENT_BLACKLIST: DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1* WORKER_ENVIRONMENT_BLACKLIST

@@ -1,7 +1,9 @@
 ---
-- name: Deploy influxdb
+- name: Deploy buildbot
   marathon:
     marathon_uri: "{{ marathon_uri }}"
+    app_id: buildbot
+    wait_quiet: 'true'
     app_json:
         id: buildbot
         cpus: 5

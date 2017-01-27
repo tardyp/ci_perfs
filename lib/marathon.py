@@ -53,6 +53,7 @@ EXAMPLES = """
     app_json: "{{ lookup('file', '/path/to/app.json') }}"
 """
 
+import time
 from json import dumps, loads
 
 from ansible.module_utils.basic import *
@@ -81,6 +82,15 @@ def request(url, method, data):
     else:
         return {}
 
+
+def waitQuiet(MARATHON_URL):
+    while True:
+        r = request(MARATHON_URL + "/v2/deployments")
+        if len(r) == 0:
+            break
+        time.sleep(1)
+
+
 def put(url, data):
     return request(url, method='PUT', data=data)
 
@@ -100,6 +110,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             marathon_uri=dict(required=True),
+            wait_quiet=dict(default='false', choices=['true', 'false']),
             app_id=dict(required=True),
             app_json=dict(required=True),
         ),
@@ -107,13 +118,16 @@ def main():
 
     marathon_uri = module.params['marathon_uri']
     app_id = module.params['app_id']
-
+    wait_quiet = module.params['wait_quiet']
     app_json = module.params['app_json']
     if isinstance(app_json, dict):
         app_json = dumps(enforceInts(app_json))
 
     if not marathon_uri.endswith('/'):
         marathon_uri = marathon_uri+'/'
+
+    if wait_quiet:
+        waitQuiet(marathon_uri)
 
     marathon_uri = marathon_uri+'v2/apps/'+app_id+'?force=true'
 
