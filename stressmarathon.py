@@ -49,7 +49,6 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
         r.raise_for_status()
     print "create {} workers".format(num_workers)
     requests.put(MARATHON_URL + "/v2/apps/worker?force=True", json={"instances": num_workers})
-
     finished = False
     builds = []
     latencies = []
@@ -80,6 +79,7 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
         if end - start > 1000:
             finished = True  # timeout
             os.system("./restart.sh")
+        requests.delete(MARATHON_URL + "/v2/queue//worker/delay")
     print "finished in ", end - start
     requests.post("http://events.buildbot.net/events/ci_perfs", json=dict(
         config_kind=config_kind, num_builds=num_builds, num_workers=num_workers,
