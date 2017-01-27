@@ -7,14 +7,14 @@
     app_json:
         id: buildbot
         cpus: 5
-        mem: 15024
+        mem: 14024
         disk: 0
         instances: 4
         container:
           type: DOCKER
           volumes: []
           docker:
-            image: buildbot/buildbot-master-pypy:hugelog
+            image: buildbot/buildbot-master-pypy:0.9.3_485
             network: BRIDGE
             privileged: false
             parameters: []

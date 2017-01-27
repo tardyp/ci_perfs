@@ -6,7 +6,7 @@
     app_json:
         cmd:
         cpus: 0.1
-        mem: 256
+        mem: 64
         disk: 0
         instances: "{{marathon_num_agents}}"
         constraints:
@@ -20,7 +20,7 @@
           docker:
             image:  "bobrik/collectd-docker"
             network: BRIDGE
-            privileged: false
+            privileged: true
             parameters: []
             forcePullImage: false
         env:
