@@ -50,13 +50,21 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
         brs = r.json()['buildrequests']
         t2 = time.time()
         r = requests.get(url + "api/v2/builds?complete=0")
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except Exception as e:
+           time.sleep(1)
+           print e
+           continue
         builds.append(len(r.json()['builds']))
         latencies.append(t2 - t1)
-        print psutil.cpu_percent(), len(brs), t2 - t1, builds[-1]
+        print len(brs), t2 - t1, builds[-1]
         finished = not brs
         time.sleep(0.4)
-    end = time.time()
+        end = time.time()
+        if end - start > 1000:
+            finished = True  # timeout
+            os.system("./restart.sh")
     print "finished in ", end - start
     with open("marathonresults.csv", 'a') as f:
         f.write(";".join(map(str, [
@@ -64,5 +72,4 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
             statistics.mean(builds), statistics.mean(latencies),
             statistics.pstdev(builds), statistics.pstdev(latencies)]
         )) + "\n")
-    return 0
 argh.dispatch_command(main)

@@ -13,7 +13,10 @@ MARATHON_URL = os.environ["MARATHON_URL"]
 
 def getPgURL():
     r = requests.get(MARATHON_URL + "/v2/apps//pg0")
-    r.raise_for_status()
+    try:
+       r.raise_for_status()
+    except:
+       return ""
     data = r.json()
     hostname = data['app']['tasks'][0]['host']
     port = data['app']['tasks'][0]['ports'][0]
@@ -24,7 +27,10 @@ def getPgURL():
 
 def getMqURL():
     r = requests.get(MARATHON_URL + "/v2/apps//mq0")
-    r.raise_for_status()
+    try:
+       r.raise_for_status()
+    except:
+       return ""
     data = r.json()
     hostname = data['app']['tasks'][0]['host']
     port = data['app']['tasks'][0]['ports'][0]
@@ -49,14 +55,14 @@ def getMasterPorts():
     try:
         r.raise_for_status()
     except:
-        return[(1, 2)]
+        return[(1, 2, 3)]
     data = r.json()
     ports = []
     for app in data['apps']:
         for task in app['tasks']:
             ports.append((task['host'], task['ports'][0], task['ports'][1]))
     if not ports:
-        return[('s1', '2')]
+        return[('s1', '2', '3')]
     return ports
 
 
