@@ -64,7 +64,10 @@ def sendCollectd(influx, datas):
 @argh.arg('num_builds', type=int)
 @argh.arg('num_workers', type=int)
 @argh.arg('num_masters', type=int)
-def main(num_builds, num_workers, num_masters, config_kind, numlines, sleep):
+def main(num_builds, num_workers, num_masters, config_kind, numlines, sleep, firstRestart=False):
+    if firstRestart:
+        restartPgAndMaster()
+
     requests.put(MARATHON_URL + "/v2/apps/buildbot?force=True", json={"instances": num_masters})
     config_kind += str(num_masters)
     waitQuiet()
