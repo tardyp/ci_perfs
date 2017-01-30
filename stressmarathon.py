@@ -1,3 +1,4 @@
+import os
 import socket
 import statistics
 import time
@@ -58,7 +59,11 @@ def sendCollectd(influx, datas):
 
 @argh.arg('num_builds', type=int)
 @argh.arg('num_workers', type=int)
-def main(num_builds, num_workers, config_kind, numlines, sleep):
+@argh.arg('num_masters', type=int)
+def main(num_builds, num_workers, num_masters, config_kind, numlines, sleep):
+    requests.put(MARATHON_URL + "/v2/apps/buildbot?force=True", json={"instances": num_masters})
+    config_kind += str(num_masters)
+    waitQuiet()
     url = getMasterURL()
     influx = getInfluxPort()
     print "stop workers"
@@ -101,14 +106,14 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
         builds.append(len(r.json()['builds']))
         latencies.append(t2 - t1)
         sendCollectd(influx, [
-            ("concurrent_builds", builds[-1])
-            ("pending_buildrequests", len(brs))
-            ("www_latency", t2 - t1)
-            ("num_workers", num_workers)
-            ("numlines", numlines)
+            ("concurrent_builds", builds[-1]),
+            ("pending_buildrequests", len(brs)),
+            ("www_latency", t2 - t1),
+            ("num_workers", num_workers),
+            ("numlines", numlines),
             ("sleep", sleep)
         ])
-        print len(brs), t2 - t1, builds[-1], "\r"
+        print len(brs), t2 - t1, builds[-1], "\r",
         finished = not brs
         time.sleep(0.4)
         end = time.time()
