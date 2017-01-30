@@ -25,6 +25,7 @@ def getInfluxPort():
         return (task['host'], 30011)
     return None
 
+
 def waitQuiet():
     while True:
         r = requests.get(MARATHON_URL + "/v2/deployments")
@@ -119,6 +120,7 @@ def main(num_builds, num_workers, num_masters, config_kind, numlines, sleep):
         end = time.time()
         if end - start > 1000:
             finished = True  # timeout
+            sendCollectd(influx, [("restarted", 1)])
             restartPgAndMaster()
         requests.delete(MARATHON_URL + "/v2/queue//worker/delay")
     print "finished in ", end - start
