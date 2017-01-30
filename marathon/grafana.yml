@@ -6,8 +6,8 @@
     app_json:
         id: "grafana"
         cmd:
-        cpus: 0.1
-        mem: 256
+        cpus: 1
+        mem: 1024
         disk: 0
         instances: 1
         container:

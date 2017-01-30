@@ -6,8 +6,8 @@
     app_json:
         id: "pg"
         cmd:
-        cpus: 1
-        mem: 2000
+        cpus: 8
+        mem: 8000
         disk: 0
         instances: 1
         container:

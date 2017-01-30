@@ -1,9 +1,8 @@
-import os
+import socket
 import statistics
 import time
 
 import argh
-import psutil
 import requests
 
 MARATHON_URL = os.environ["MARATHON_URL"]
@@ -14,8 +13,16 @@ def getMasterURL():
     r.raise_for_status()
     data = r.json()
     for task in data['app']['tasks']:
-        return "http://{}:{}/".format(task['host'], task['ports'][1])
+        return "http://{}:{}/".format(task['host'], 30030)
 
+
+def getInfluxPort():
+    r = requests.get(MARATHON_URL + "/v2/apps/influxdb")
+    r.raise_for_status()
+    data = r.json()
+    for task in data['app']['tasks']:
+        return (task['host'], task['port'][1])
+    return None
 
 def waitQuiet():
     while True:
@@ -29,10 +36,31 @@ def waitQuiet():
         time.sleep(1)
 
 
+def restartPgAndMaster():
+    requests.post(MARATHON_URL + "/v2/apps/pg/restart")
+    waitQuiet()
+    requests.post(MARATHON_URL + "/v2/apps/buildbot/restart")
+    waitQuiet()
+
+
+def sendCollectd(influx, datas):
+    if influx is None:
+        return
+    message = ""
+    for name, value in datas:
+        message += 'collectd.MESOS.docker_stats.stresstest.default.gauge.{} {} {}\n'.format(
+            name, value, int(time.time()))
+    sock = socket.socket()
+    sock.connect(influx)
+    sock.sendall(message)
+    sock.close()
+
+
 @argh.arg('num_builds', type=int)
 @argh.arg('num_workers', type=int)
 def main(num_builds, num_workers, config_kind, numlines, sleep):
     url = getMasterURL()
+    influx = getInfluxPort()
     print "stop workers"
     requests.put(MARATHON_URL + "/v2/apps/worker?force=True", json={"instances": 0})
     waitQuiet()
@@ -55,31 +83,38 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
     while not finished:
         t1 = time.time()
         try:
-           r = requests.get(url + "api/v2/buildrequests?complete=0")
-           r.raise_for_status()
-           brs = r.json()['buildrequests']
+            r = requests.get(url + "api/v2/buildrequests?complete=0")
+            r.raise_for_status()
         except Exception as e:
-           url = getMasterURL()
-           time.sleep(1)
-           print e
-           continue
+            time.sleep(1)
+            print e
+            continue
+        brs = r.json()['buildrequests']
         t2 = time.time()
         try:
             r = requests.get(url + "api/v2/builds?complete=0")
             r.raise_for_status()
-            builds.append(len(r.json()['builds']))
         except Exception as e:
-           time.sleep(1)
-           print e
-           continue
+            time.sleep(1)
+            print e
+            continue
+        builds.append(len(r.json()['builds']))
         latencies.append(t2 - t1)
-        print len(brs), t2 - t1, builds[-1]
+        sendCollectd(influx, [
+            ("stresstest.concurrent_builds", builds[-1])
+            ("stresstest.pending_buildrequests", len(brs))
+            ("stresstest.www_latency", t2 - t1)
+            ("stresstest.num_workers", num_workers)
+            ("stresstest.numlines", numlines)
+            ("stresstest.sleep", sleep)
+        ])
+        print len(brs), t2 - t1, builds[-1], "\r"
         finished = not brs
         time.sleep(0.4)
         end = time.time()
         if end - start > 1000:
             finished = True  # timeout
-            os.system("./restart.sh")
+            restartPgAndMaster()
         requests.delete(MARATHON_URL + "/v2/queue//worker/delay")
     print "finished in ", end - start
     requests.post("http://events.buildbot.net/events/ci_perfs", json=dict(

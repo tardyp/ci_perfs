@@ -6,8 +6,8 @@
     app_json:
         id: "influxdb"
         cmd: influxd -config /mnt/mesos/sandbox/influxdb.conf
-        cpus: 0.1
-        mem: 256
+        cpus: 4
+        mem: 2048
         disk: 0
         instances: 1
         container:
