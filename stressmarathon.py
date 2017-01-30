@@ -21,7 +21,7 @@ def getInfluxPort():
     r.raise_for_status()
     data = r.json()
     for task in data['app']['tasks']:
-        return (task['host'], task['port'][1])
+        return (task['host'], 30011)
     return None
 
 def waitQuiet():
@@ -48,7 +48,7 @@ def sendCollectd(influx, datas):
         return
     message = ""
     for name, value in datas:
-        message += 'collectd.MESOS.docker_stats.stresstest.default.gauge.{} {} {}\n'.format(
+        message += 'collectd.MESOS.docker_stats.stresstest.default.gauge.stress.{} {} {}\n'.format(
             name, value, int(time.time()))
     sock = socket.socket()
     sock.connect(influx)
@@ -101,12 +101,12 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
         builds.append(len(r.json()['builds']))
         latencies.append(t2 - t1)
         sendCollectd(influx, [
-            ("stresstest.concurrent_builds", builds[-1])
-            ("stresstest.pending_buildrequests", len(brs))
-            ("stresstest.www_latency", t2 - t1)
-            ("stresstest.num_workers", num_workers)
-            ("stresstest.numlines", numlines)
-            ("stresstest.sleep", sleep)
+            ("concurrent_builds", builds[-1])
+            ("pending_buildrequests", len(brs))
+            ("www_latency", t2 - t1)
+            ("num_workers", num_workers)
+            ("numlines", numlines)
+            ("sleep", sleep)
         ])
         print len(brs), t2 - t1, builds[-1], "\r"
         finished = not brs
