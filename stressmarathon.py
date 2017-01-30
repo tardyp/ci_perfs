@@ -53,9 +53,12 @@ def sendCollectd(influx, datas):
         message += 'collectd.MESOS.docker_stats.stresstest.default.gauge.stress.{} {} {}\n'.format(
             name, value, int(time.time()))
     sock = socket.socket()
-    sock.connect(influx)
-    sock.sendall(message)
-    sock.close()
+    try:
+        sock.connect(influx)
+        sock.sendall(message)
+        sock.close()
+    except:
+        pass
 
 
 @argh.arg('num_builds', type=int)
@@ -122,7 +125,10 @@ def main(num_builds, num_workers, num_masters, config_kind, numlines, sleep):
             finished = True  # timeout
             sendCollectd(influx, [("restarted", 1)])
             restartPgAndMaster()
-        requests.delete(MARATHON_URL + "/v2/queue//worker/delay")
+        try:
+            requests.delete(MARATHON_URL + "/v2/queue//worker/delay")
+        except:
+            pass
     print "finished in ", end - start
     requests.post("http://events.buildbot.net/events/ci_perfs", json=dict(
         config_kind=config_kind, num_builds=num_builds, num_workers=num_workers,
