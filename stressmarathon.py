@@ -54,23 +54,24 @@ def main(num_builds, num_workers, config_kind, numlines, sleep):
     latencies = []
     while not finished:
         t1 = time.time()
-        r = requests.get(url + "api/v2/buildrequests?complete=0")
         try:
+           r = requests.get(url + "api/v2/buildrequests?complete=0")
            r.raise_for_status()
+           brs = r.json()['buildrequests']
         except Exception as e:
+           url = getMasterURL()
            time.sleep(1)
            print e
            continue
-        brs = r.json()['buildrequests']
         t2 = time.time()
-        r = requests.get(url + "api/v2/builds?complete=0")
         try:
+            r = requests.get(url + "api/v2/builds?complete=0")
             r.raise_for_status()
+            builds.append(len(r.json()['builds']))
         except Exception as e:
            time.sleep(1)
            print e
            continue
-        builds.append(len(r.json()['builds']))
         latencies.append(t2 - t1)
         print len(brs), t2 - t1, builds[-1]
         finished = not brs
