@@ -39,11 +39,23 @@ def waitQuiet():
 
 
 def restartPgAndMaster():
+    print "restarting pg"
     requests.post(MARATHON_URL + "/v2/apps/pg/restart")
     waitQuiet()
+    print "restarting buildbot"
     requests.post(MARATHON_URL + "/v2/apps/buildbot/restart")
     waitQuiet()
-
+    while True:
+        url = getMasterURL()
+        try:
+            r = requests.get(
+                url + "api/v2/forceschedulers/force")
+            print r.status_code
+            if r.status_code == 200:
+                return
+        except:
+            pass
+        time.sleep(1)
 
 def sendCollectd(influx, datas):
     if influx is None:

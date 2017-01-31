@@ -11,6 +11,7 @@ for workers in 100 200 300
 do
 python stressmarathon.py 300 $workers $masters pypy $numlines $sleeptime || exit
 done
+python stressmarathon.py -f 0 0 0 0 0 0
 done
 done
 done
