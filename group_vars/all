@@ -31,7 +31,8 @@ docker_ip: 172.17.0.1
 marathon_uri: "{{ ansible_env.MARATHON_URI }}"
 zookeeper_worker_path: "{{ ansible_env.ZOOKEEPER_URI }}workers/ids/"
 influxdb_conf_url: "{{ ansible_env.INFLUXDB_CONF_URL | default('https://raw.githubusercontent.com/tardyp/ci_perfs/master/marathon/influxdb/influxdb.conf') }}"
-
+nginx_external_url: "{{ ansible_env.NGINX_EXTERNAL_URL }}"
+grafana_admin_passwd: "{{ ansible_env.GRAFANA_ADMIN_PASSWD | default('admin') }}"
 # PG config for buildbot
 POSTGRES_USER: buildbot
 POSTGRES_PASSWORD: change_me

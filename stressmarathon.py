@@ -10,21 +10,18 @@ MARATHON_URL = os.environ["MARATHON_URL"]
 
 
 def getMasterURL():
-    r = requests.get(MARATHON_URL + "/v2/apps/buildbot")
+    r = requests.get(MARATHON_URL + "/v2/apps/ciperf/buildbot/buildbot")
     r.raise_for_status()
     data = r.json()
     for task in data['app']['tasks']:
         return "http://{}:{}/".format(task['host'], 30030)
 
-
-def getInfluxPort():
-    r = requests.get(MARATHON_URL + "/v2/apps/influxdb")
+def getInfluxURL():
+    r = requests.get(MARATHON_URL + "/v2/apps/core/metrics/influx")
     r.raise_for_status()
     data = r.json()
     for task in data['app']['tasks']:
-        return (task['host'], 30011)
-    return None
-
+        return "http://{}:{}/".format(task['host'], 30030)
 
 def waitQuiet():
     while True:
@@ -40,10 +37,10 @@ def waitQuiet():
 
 def restartPgAndMaster():
     print "restarting pg"
-    requests.post(MARATHON_URL + "/v2/apps/pg/restart")
+    requests.post(MARATHON_URL + "/v2/apps/ciperf/backend/pg/restart")
     waitQuiet()
     print "restarting buildbot"
-    requests.post(MARATHON_URL + "/v2/apps/buildbot/restart")
+    requests.post(MARATHON_URL + "/v2/apps/ciperf/buildbot/buildbot/restart")
     waitQuiet()
     while True:
         url = getMasterURL()

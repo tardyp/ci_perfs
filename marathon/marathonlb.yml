@@ -6,7 +6,7 @@
     wait_quiet: true
     app_json:
         cmd:
-        args: [ sse, --marathon, "{{ marathon_uri }}", --group, external ]
+        args: [ sse, --marathon, "{{ marathon_uri }}", --group, external, --dont-bind-http-https ]
         cpus: 1
         mem: 128
         disk: 0

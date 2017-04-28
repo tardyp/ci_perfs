@@ -30,7 +30,7 @@
             BUILDBOT_CONFIG_DIR: config
             BUILDBOT_CONFIG_URL: https://github.com/tardyp/ci_perfs/archive/master.tar.gz
             BUILDBOT_WORKER_PORT: '9989'
-            BUILDBOT_WEB_URL: "http://{HOST}:{PORT1}/"  # HOST and PORT1 are from the environ (implemented in master.cfg)
+            BUILDBOT_WEB_URL: "{{ nginx_external_url }}/buildbot/"  # HOST and PORT1 are from the environ (implemented in master.cfg)
             BUILDBOT_WEB_PORT: '8080'
             BUILDBOT_DB_URL: postgresql+psycopg2://{{POSTGRES_USER}}:{{POSTGRES_PASSWORD}}@{{docker_ip}}:{{servicePorts['postgres']}}/{{POSTGRES_DB}}
             BUILDBOT_MQ_URL: ws://{{docker_ip}}:{{servicePorts['crossbar']}}
