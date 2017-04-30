@@ -3,10 +3,11 @@ import os
 import sys
 import urlparse
 
-from buildbot_worker.bot import Worker
 from twisted.application import service
 from twisted.internet import reactor
 from twisted.python.log import FileLogObserver, ILogObserver
+
+from buildbot_worker.bot import Worker
 
 
 def getZookeperId(zk_url):
@@ -44,11 +45,14 @@ application.setComponent(ILogObserver, FileLogObserver(sys.stdout).emit)
 # and worker on the same process!
 buildmaster_host = os.environ.get("BUILDMASTER", 'localhost')
 port = int(os.environ.get("BUILDMASTER_PORT", 9989))
+numworkers = int(os.environ.get("NUMWORKER", '1'))
+
 workername = os.environ.get("WORKERNAME", 'docker')
 if "{zk:" in workername:
     zk_url = "zk:" + workername.split("{zk:")[1].split("}")[0]
-    workername = workername.replace("{" + zk_url + "}", getZookeperId(zk_url))
-    print("workname:", workername)
+    baseid = int(getZookeperId(zk_url)) * numworkers
+else:
+    baseid = None
 passwd = os.environ.get("WORKERPASS")
 
 # delete the password from the environ so that it is not leaked in the log
@@ -63,7 +67,14 @@ umask = None
 maxdelay = 300
 allow_shutdown = None
 
-s = Worker(buildmaster_host, port, workername, passwd, basedir,
-           keepalive, umask=umask, maxdelay=maxdelay,
-           allow_shutdown=allow_shutdown)
-s.setServiceParent(application)
+for i in range(numworkers):
+    if baseid is not None:
+        _workername = workername.replace("{" + zk_url + "}", "%03d" % (baseid + i))
+    else:
+        _workername = workername
+    print("workname:", _workername)
+    _basedir = os.path.join(basedir, _workername)
+    s = Worker(buildmaster_host, port, _workername, passwd, _basedir,
+               keepalive, umask=umask, maxdelay=maxdelay,
+               allow_shutdown=allow_shutdown)
+    s.setServiceParent(application)
