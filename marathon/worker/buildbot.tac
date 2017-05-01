@@ -74,6 +74,7 @@ for i in range(numworkers):
         _workername = workername
     print("workname:", _workername)
     _basedir = os.path.join(basedir, _workername)
+    os.system("mkdir -p " + _basedir)
     s = Worker(buildmaster_host, port, _workername, passwd, _basedir,
                keepalive, umask=umask, maxdelay=maxdelay,
                allow_shutdown=allow_shutdown)
